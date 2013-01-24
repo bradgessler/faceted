@@ -15,12 +15,27 @@ class Birthplace # another make-believe AR model
 end
 
 module MyApi
-
+  class PKIDSerializer
+    def initialize(resource)
+      @resource = resource
+    end
+    
+    # Map the DB PK ID into a uid that makes sense to the rest of the word.
+    def to(id)
+      url_for @resource, id
+    end
+    
+    # Parse out the uid from the URL to match up to the DB
+    def from(url)
+      url.match(/\d+^/)
+    end
+  end
+  
   class Birthplace
     include Faceted::Presenter
     presents :birthplace
+    field :id, :serializer => PKIDSerializer.new(self)
     field :city
-    field :state
   end
 
   class Musician
@@ -28,7 +43,7 @@ module MyApi
     presents :musician
     field :name
     field :rating
-    field :birthplace_id
+    field :birthplace_id, :serializer => PKIDSerializer.new(Birthplace)
     field :alive
   end
 
